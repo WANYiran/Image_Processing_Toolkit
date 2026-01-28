@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# PyInstaller
+*.spec
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.log
+*.cache
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 上传的文件（用户数据）
+uploads/
+*.csv
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+
+# 配置文件（如果包含敏感信息，可以忽略）
+# config.py
+
+# 环境变量
+.env
+.env.local

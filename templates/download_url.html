@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL下载图片</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📥 图片批量下载工具</h1>
+            <p>上传 CSV 文件，选择要下载的图片链接，下载到指定文件夹</p>
+            <div class="requirement-notice">
+                <p><strong>⚠️ 重要提示：</strong>CSV 文件必须包含 <code>album_id</code> 和 <code>url</code> 两列，其他列会被忽略</p>
+            </div>
+            <div style="margin-top: 15px;">
+                <a href="/" class="back-link">← 返回主页</a>
+            </div>
+        </header>
+
+        <!-- CSV 上传区域 -->
+        <section class="upload-section">
+            <div class="upload-box" id="uploadBox">
+                <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                <div class="upload-content" onclick="document.getElementById('csvFile').click()">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>点击或拖拽 CSV 文件到此处</p>
+                    <p class="hint">CSV 文件必须包含 <strong>album_id</strong> 和 <strong>url</strong> 两列</p>
+                </div>
+            </div>
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <span id="fileName"></span>
+                <button class="btn-secondary" onclick="clearFile()">清除</button>
+            </div>
+        </section>
+
+        <!-- 控制面板 -->
+        <section class="control-panel" id="controlPanel" style="display: none;">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">总数:</span>
+                    <span class="stat-value" id="totalCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">已选择:</span>
+                    <span class="stat-value" id="selectedCount">0</span>
+                </div>
+                <div class="stat-actions">
+                    <button class="btn-primary" onclick="selectAll()">全选</button>
+                    <button class="btn-secondary" onclick="deselectAll()">取消全选</button>
+                    <button class="btn-success" onclick="downloadSelected()" id="downloadBtn">
+                        <span>下载选中图片</span>
+                        <span class="loading" id="downloadLoading" style="display: none;">下载中...</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- URL 列表 -->
+        <section class="url-list-section" id="urlListSection" style="display: none;">
+            <div class="url-list-container">
+                <table class="url-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
+                            </th>
+                            <th style="width: 150px;">Album ID</th>
+                            <th>URL 链接</th>
+                        </tr>
+                    </thead>
+                    <tbody id="urlListBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 结果提示 -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="/static/download_url.js"></script>
+</body>
+</html>

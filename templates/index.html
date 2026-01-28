@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理工具 - 功能选择</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="main-header">
+            <h1>🖼️ 2026 图片处理工具 - 整合版</h1>
+            <p>选择您需要的功能</p>
+        </header>
+        
+        <div class="features-grid">
+            <div class="feature-card" onclick="window.location.href='/download_url'">
+                <div class="feature-icon">📥</div>
+                <h2>URL下载图片</h2>
+                <p>上传CSV文件，批量从URL下载图片</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>支持CSV文件上传</li>
+                        <li>批量下载图片</li>
+                        <li>支持选择下载</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='/resize_image'">
+                <div class="feature-icon">📏</div>
+                <h2>图片调整大小</h2>
+                <p>批量调整图片尺寸</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>支持批量处理</li>
+                        <li>自定义宽度和高度</li>
+                        <li>保持图片质量</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='/crop_image'">
+                <div class="feature-icon">✂️</div>
+                <h2>图片裁剪</h2>
+                <p>批量裁剪图片，支持上下左右全方位裁剪</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>支持批量上传</li>
+                        <li>自定义上下左右裁剪像素</li>
+                        <li>实时预览效果</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='/expand_image'">
+                <div class="feature-icon">🖼️</div>
+                <h2>AI智能扩图</h2>
+                <p>使用通义千问AI模型智能扩展图片边缘</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>支持批量上传</li>
+                        <li>自定义上下左右扩图像素</li>
+                        <li>AI智能填充边缘</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='/ratio_crop'">
+                <div class="feature-icon">📐</div>
+                <h2>3:4比例裁切</h2>
+                <p>CSV导入图片URL，交互式裁切为3:4比例</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>自动识别CSV中的图片URL列</li>
+                        <li>保持高度不变，裁切成3:4比例</li>
+                        <li>左右拖动选择裁切区域</li>
+                        <li>支持批量预览和下载</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+        </div>
+        
+        <footer class="main-footer">
+            <p>© 2026 图片处理工具 - 整合版 | <span id="version-info">版本检查中...</span> | <a href="#" id="check-update-link" style="color: #4CAF50; text-decoration: none;">检查更新</a></p>
+            <p style="font-size: 12px; color: #999; margin-top: 5px;" id="update-notice" style="display: none;">
+                💡 提示：更新时需要手动下载新版本并替换旧版本，不会自动删除旧版本
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // 检查更新功能
+        async function checkUpdate() {
+            try {
+                const response = await fetch('/api/check-update');
+                const data = await response.json();
+                
+                const versionInfo = document.getElementById('version-info');
+                const updateLink = document.getElementById('check-update-link');
+                
+                if (data.has_update) {
+                    versionInfo.textContent = `当前版本: ${data.current_version} | 有新版本: ${data.latest_version}`;
+                    versionInfo.style.color = '#FF9800';
+                    updateLink.textContent = '下载更新';
+                    updateLink.href = data.download_url || data.release_url || '#';
+                    updateLink.target = '_blank';
+                    updateLink.style.color = '#FF5722';
+                    updateLink.style.fontWeight = 'bold';
+                    // 显示更新提示
+                    document.getElementById('update-notice').style.display = 'block';
+                } else {
+                    versionInfo.textContent = `当前版本: ${data.current_version}`;
+                    versionInfo.style.color = '#4CAF50';
+                    updateLink.textContent = '检查更新';
+                    updateLink.onclick = function(e) {
+                        e.preventDefault();
+                        alert('当前已是最新版本！');
+                    };
+                    // 隐藏更新提示
+                    document.getElementById('update-notice').style.display = 'none';
+                }
+            } catch (error) {
+                document.getElementById('version-info').textContent = '版本: 未知';
+            }
+        }
+        
+        // 页面加载时检查更新
+        checkUpdate();
+        
+        // 点击检查更新链接
+        document.getElementById('check-update-link').addEventListener('click', function(e) {
+            if (this.textContent === '检查更新') {
+                e.preventDefault();
+                checkUpdate();
+            }
+        });
+    </script>
+</body>
+</html>

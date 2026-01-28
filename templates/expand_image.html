@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能扩图工具</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AI智能扩图工具</h1>
+        <div style="margin-bottom: 20px;">
+            <a href="/" class="back-link">← 返回主页</a>
+        </div>
+        
+        <div class="upload-section">
+            <h2>1. 上传图片</h2>
+            <div class="upload-container">
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <p class="upload-text">拖拽图片到这里</p>
+                        <p class="upload-divider">或</p>
+                        <p class="hint">支持批量上传 JPG、PNG、GIF 等格式</p>
+                    </div>
+                </div>
+                <div class="upload-button-wrapper">
+                    <button type="button" class="btn btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        选择图片文件
+                    </button>
+                </div>
+            </div>
+            <div class="file-list" id="fileList">
+                <p style="color: #9E9E9E; font-weight: 300; font-size: 0.9em;">暂无上传文件</p>
+            </div>
+        </div>
+
+        <div class="crop-section">
+            <h2>2. 设置扩图参数</h2>
+            <div class="crop-controls">
+                <div class="control-group">
+                    <label for="expandTop">上方扩图像素：</label>
+                    <input type="number" id="expandTop" min="0" value="0" step="1">
+                    <span class="unit">px</span>
+                </div>
+                <div class="control-group">
+                    <label for="expandBottom">下方扩图像素：</label>
+                    <input type="number" id="expandBottom" min="0" value="0" step="1">
+                    <span class="unit">px</span>
+                </div>
+                <div class="control-group">
+                    <label for="expandLeft">左侧扩图像素：</label>
+                    <input type="number" id="expandLeft" min="0" value="0" step="1">
+                    <span class="unit">px</span>
+                </div>
+                <div class="control-group">
+                    <label for="expandRight">右侧扩图像素：</label>
+                    <input type="number" id="expandRight" min="0" value="0" step="1">
+                    <span class="unit">px</span>
+                </div>
+                <button id="applyExpand" class="btn btn-primary">开始扩图</button>
+            </div>
+            <div style="margin-top: 15px; padding: 15px; background: #E3F2FD; border-left: 3px solid #2196F3; font-size: 0.9em; color: #1976D2;">
+                <strong>💡 提示：</strong>为了获得更自然的扩展效果，建议将最终输出图像的宽高比控制在接近1:1的范围内。
+            </div>
+            <div id="apiKeyWarning" style="display: none; margin-top: 15px; padding: 15px; background: #FFF3CD; border-left: 3px solid #FFC107; font-size: 0.9em; color: #856404;">
+                <strong>⚠️ 重要提示：</strong>使用此功能需要配置通义千问API Key。请在运行应用前设置环境变量 <code>DASHSCOPE_API_KEY</code>，然后重启应用。
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <h2>3. 处理进度与结果</h2>
+            <div id="progressInfo" style="display: none; margin-bottom: 20px;">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">0%</div>
+                    </div>
+                    <div class="progress-text" id="progressText">等待开始...</div>
+                </div>
+            </div>
+            <div id="reworkSection" style="display: none; margin-bottom: 20px; padding: 15px; background: #FFF3CD; border-left: 3px solid #FFC107; border-radius: 4px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <span style="color: #856404; font-weight: 500;">已选择 <span id="selectedCount">0</span> 张图片重新扩图</span>
+                    <button id="reworkSelectedBtn" class="btn btn-primary" disabled>重新扩图选中图片</button>
+                    <button id="clearSelectionBtn" class="btn btn-secondary">取消选择</button>
+                </div>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+            <div class="download-section" id="downloadSection" style="display: none;">
+                <button id="downloadAll" class="btn btn-success" disabled>批量下载所有图片</button>
+                <button id="clearAll" class="btn btn-secondary">清空所有</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/expand_image.js"></script>
+</body>
+</html>

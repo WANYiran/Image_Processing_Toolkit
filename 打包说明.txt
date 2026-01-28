@@ -1,0 +1,53 @@
+========================================
+图片处理工具 - 打包说明（最简单方式）
+========================================
+
+【第一步】安装 PyInstaller
+---------------------------
+打开命令行（CMD），运行：
+    pip install pyinstaller
+
+如果使用虚拟环境，先激活虚拟环境，然后运行上面的命令。
+
+
+【第二步】运行打包
+---------------------------
+方法1：直接双击运行
+    build_exe_simple.bat
+
+方法2：命令行运行
+    1. 打开命令行
+    2. 进入 integrated_image_tool 文件夹
+    3. 运行：
+       pyinstaller --name=图片处理工具 --onefile --add-data="templates;templates" --add-data="static;static" --hidden-import=flask --hidden-import=flask_cors --hidden-import=PIL --hidden-import=pandas --hidden-import=requests --hidden-import=werkzeug --collect-all=flask --collect-all=PIL app.py
+
+
+【第三步】找到打包好的文件
+---------------------------
+打包完成后，在 dist 文件夹中会生成：
+    图片处理工具.exe
+
+这个exe文件就是可以分发给用户的程序！
+
+
+【使用说明】
+---------------------------
+1. 将 图片处理工具.exe 发送给用户
+2. 用户双击运行即可
+3. 程序会自动在浏览器中打开 http://localhost:5000
+4. 如果浏览器没有自动打开，用户可以手动访问该地址
+
+
+【注意事项】
+---------------------------
+1. 打包过程需要2-5分钟，请耐心等待
+2. exe文件可能比较大（100-200MB），这是正常的
+3. Windows可能会提示"未知发布者"，需要点击"更多信息" -> "仍要运行"
+4. 如果用户需要使用AI扩图功能，需要自己配置 DASHSCOPE_API_KEY 环境变量
+
+
+【如果打包失败】
+---------------------------
+1. 确保所有依赖都已安装：pip install -r requirements.txt
+2. 确保PyInstaller已安装：pip install pyinstaller
+3. 检查是否有错误信息，根据错误信息解决问题
