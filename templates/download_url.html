@@ -12,7 +12,28 @@
             <h1>📥 图片批量下载工具</h1>
             <p>上传 CSV 文件，选择要下载的图片链接，下载到指定文件夹</p>
             <div class="requirement-notice">
-                <p><strong>⚠️ 重要提示：</strong>CSV 文件必须包含 <code>album_id</code> 和 <code>url</code> 两列，其他列会被忽略</p>
+                <p><strong>⚠️ 重要提示：</strong>请在上传CSV后选择URL列和命名列</p>
+            </div>
+            <div id="columnSelectors" style="display: none; margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                <div style="margin-bottom: 15px;">
+                    <label for="urlColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                        选择包含图片URL的列：
+                    </label>
+                    <select id="urlColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">请先上传CSV文件</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="nameColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                        选择用于文件命名的列：
+                    </label>
+                    <select id="nameColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">请先上传CSV文件</option>
+                    </select>
+                    <p style="margin-top: 8px; color: #666; font-size: 12px;">
+                        下载的图片将使用此列的值作为文件名
+                    </p>
+                </div>
             </div>
             <div style="margin-top: 15px;">
                 <a href="/" class="back-link">← 返回主页</a>
@@ -30,7 +51,7 @@
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
                     <p>点击或拖拽 CSV 文件到此处</p>
-                    <p class="hint">CSV 文件必须包含 <strong>album_id</strong> 和 <strong>url</strong> 两列</p>
+                    <p class="hint">上传CSV文件后，请选择包含图片URL的列和用于文件命名的列</p>
                 </div>
             </div>
             <div id="fileInfo" class="file-info" style="display: none;">
@@ -70,7 +91,7 @@
                             <th style="width: 50px;">
                                 <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
                             </th>
-                            <th style="width: 150px;">Album ID</th>
+                            <th style="width: 150px;">文件标识</th>
                             <th>URL 链接</th>
                         </tr>
                     </thead>

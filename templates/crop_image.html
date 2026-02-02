@@ -15,35 +15,86 @@
         
         <div class="upload-section">
             <h2>1. 上传图片</h2>
-            <div class="upload-container">
-                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-content">
-                        <div class="upload-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div style="margin-bottom: 15px;">
+                <label style="margin-right: 15px;">
+                    <input type="radio" name="uploadType" value="local" checked onchange="switchUploadType('local')">
+                    本地上传
+                </label>
+                <label>
+                    <input type="radio" name="uploadType" value="csv" onchange="switchUploadType('csv')">
+                    CSV批量上传
+                </label>
+            </div>
+            <div id="localUploadSection">
+                <div class="upload-container">
+                    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                            </div>
+                            <p class="upload-text">拖拽图片到这里</p>
+                            <p class="upload-divider">或</p>
+                            <p class="hint">支持批量上传 JPG、PNG、GIF 等格式</p>
+                        </div>
+                    </div>
+                    <div class="upload-button-wrapper">
+                        <button type="button" class="btn btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                        </div>
-                        <p class="upload-text">拖拽图片到这里</p>
-                        <p class="upload-divider">或</p>
-                        <p class="hint">支持批量上传 JPG、PNG、GIF 等格式</p>
+                            选择图片文件
+                        </button>
                     </div>
                 </div>
-                <div class="upload-button-wrapper">
-                    <button type="button" class="btn btn-upload" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        选择图片文件
-                    </button>
+                <div class="file-list" id="fileList">
+                    <p style="color: #9E9E9E; font-weight: 300; font-size: 0.9em;">暂无上传文件</p>
                 </div>
             </div>
-            <div class="file-list" id="fileList">
-                <p style="color: #9E9E9E; font-weight: 300; font-size: 0.9em;">暂无上传文件</p>
+            <div id="csvUploadSection" style="display: none;">
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                <button type="button" class="btn btn-upload" id="selectCsvBtn" onclick="document.getElementById('csvFileInput').click()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    选择CSV文件
+                </button>
+                <div id="csvFileInfo" style="display: none; margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 4px;">
+                    <p><strong>已上传文件:</strong> <span id="csvFileName"></span></p>
+                    <p><strong>图片数量:</strong> <span id="csvImageCount">0</span></p>
+                </div>
+                <div id="csvColumnSelectors" style="display: none; margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                    <div style="margin-bottom: 15px;">
+                        <label for="csvUrlColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                            选择包含图片URL的列：
+                        </label>
+                        <select id="csvUrlColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="">请先上传CSV文件</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="csvNameColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                            选择用于文件命名的列：
+                        </label>
+                        <select id="csvNameColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="">请先上传CSV文件</option>
+                        </select>
+                        <p style="margin-top: 8px; color: #666; font-size: 12px;">
+                            处理后的图片将使用此列的值作为文件名
+                        </p>
+                    </div>
+                </div>
+                <div id="csvImageList" class="file-list" style="margin-top: 15px;">
+                    <p style="color: #9E9E9E; font-weight: 300; font-size: 0.9em;">暂无上传文件</p>
+                </div>
             </div>
         </div>
 

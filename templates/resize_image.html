@@ -15,9 +15,51 @@
         
         <div class="section">
             <h2>选择图片文件</h2>
-            <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
-            <button id="selectBtn" class="btn btn-primary">选择图片（可多选）</button>
-            <div id="fileList" class="file-list"></div>
+            <div style="margin-bottom: 15px;">
+                <label style="margin-right: 15px;">
+                    <input type="radio" name="uploadType" value="local" checked onchange="switchUploadType('local')">
+                    本地上传
+                </label>
+                <label>
+                    <input type="radio" name="uploadType" value="csv" onchange="switchUploadType('csv')">
+                    CSV批量上传
+                </label>
+            </div>
+            <div id="localUploadSection">
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+                <button id="selectBtn" class="btn btn-primary">选择图片（可多选）</button>
+                <div id="fileList" class="file-list"></div>
+            </div>
+            <div id="csvUploadSection" style="display: none;">
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                <button id="selectCsvBtn" class="btn btn-primary">选择CSV文件</button>
+                <div id="csvFileInfo" style="display: none; margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 4px;">
+                    <p><strong>已上传文件:</strong> <span id="csvFileName"></span></p>
+                    <p><strong>图片数量:</strong> <span id="csvImageCount">0</span></p>
+                </div>
+                <div id="csvColumnSelectors" style="display: none; margin-top: 15px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                    <div style="margin-bottom: 15px;">
+                        <label for="csvUrlColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                            选择包含图片URL的列：
+                        </label>
+                        <select id="csvUrlColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="">请先上传CSV文件</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="csvNameColumnSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                            选择用于文件命名的列：
+                        </label>
+                        <select id="csvNameColumnSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="">请先上传CSV文件</option>
+                        </select>
+                        <p style="margin-top: 8px; color: #666; font-size: 12px;">
+                            处理后的图片将使用此列的值作为文件名
+                        </p>
+                    </div>
+                </div>
+                <div id="csvImageList" class="file-list" style="margin-top: 15px;"></div>
+            </div>
         </div>
         
         <div class="section">

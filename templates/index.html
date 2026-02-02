@@ -21,6 +21,7 @@
                 <div class="feature-details">
                     <ul>
                         <li>支持CSV文件上传</li>
+                        <li>可选择CSV中的URL列和命名列</li>
                         <li>批量下载图片</li>
                         <li>支持选择下载</li>
                     </ul>
@@ -31,10 +32,11 @@
             <div class="feature-card" onclick="window.location.href='/resize_image'">
                 <div class="feature-icon">📏</div>
                 <h2>图片调整大小</h2>
-                <p>批量调整图片尺寸</p>
+                <p>支持本地上传或CSV导入，批量调整图片尺寸</p>
                 <div class="feature-details">
                     <ul>
-                        <li>支持批量处理</li>
+                        <li>支持本地上传和CSV批量上传</li>
+                        <li>可选择CSV中的URL列和命名列</li>
                         <li>自定义宽度和高度</li>
                         <li>保持图片质量</li>
                     </ul>
@@ -45,10 +47,11 @@
             <div class="feature-card" onclick="window.location.href='/crop_image'">
                 <div class="feature-icon">✂️</div>
                 <h2>图片裁剪</h2>
-                <p>批量裁剪图片，支持上下左右全方位裁剪</p>
+                <p>支持本地上传或CSV导入，批量裁剪图片，支持上下左右全方位裁剪</p>
                 <div class="feature-details">
                     <ul>
-                        <li>支持批量上传</li>
+                        <li>支持本地上传和CSV批量上传</li>
+                        <li>可选择CSV中的URL列和命名列</li>
                         <li>自定义上下左右裁剪像素</li>
                         <li>实时预览效果</li>
                     </ul>
@@ -73,13 +76,29 @@
             <div class="feature-card" onclick="window.location.href='/ratio_crop'">
                 <div class="feature-icon">📐</div>
                 <h2>3:4比例裁切</h2>
-                <p>CSV导入图片URL，交互式裁切为3:4比例</p>
+                <p>支持本地上传或CSV导入，交互式裁切为3:4比例</p>
                 <div class="feature-details">
                     <ul>
-                        <li>自动识别CSV中的图片URL列</li>
+                        <li>支持本地上传和CSV批量上传</li>
+                        <li>可选择CSV中的URL列和命名列</li>
                         <li>保持高度不变，裁切成3:4比例</li>
                         <li>左右拖动选择裁切区域</li>
                         <li>支持批量预览和下载</li>
+                    </ul>
+                </div>
+                <button class="feature-btn">开始使用</button>
+            </div>
+            
+            <div class="feature-card" onclick="window.location.href='/add_text'">
+                <div class="feature-icon">📝</div>
+                <h2>图片加字工具</h2>
+                <p>批量给图片添加标题文字（主标题和副标题）</p>
+                <div class="feature-details">
+                    <ul>
+                        <li>支持批量上传本地图片和CSV文件</li>
+                        <li>自动匹配图片文件名和CSV中的ID</li>
+                        <li>可调整字号、颜色、描边、位置等参数</li>
+                        <li>支持单张编辑和批量保存</li>
                     </ul>
                 </div>
                 <button class="feature-btn">开始使用</button>

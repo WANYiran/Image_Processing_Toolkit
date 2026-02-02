@@ -1,6 +1,8 @@
 const API_BASE = '/api';
 let currentImages = [];
 let selectedImages = new Set();
+let csvColumns = [];
+let csvData = [];  // 保存完整的CSV数据
 
 // 初始化
 document.getElementById('csvFile').addEventListener('change', handleFileSelect);
@@ -29,7 +31,8 @@ async function uploadCSV(file) {
         const data = await response.json();
         
         if (data.success) {
-            currentImages = data.images;
+            csvColumns = data.columns || [];
+            csvData = data.csv_data || [];  // 保存完整的CSV数据
             selectedImages.clear();
             
             document.getElementById('fileName').textContent = file.name;
@@ -37,9 +40,15 @@ async function uploadCSV(file) {
             document.getElementById('controlPanel').style.display = 'block';
             document.getElementById('urlListSection').style.display = 'block';
             
+            // 更新列选择器
+            updateColumnSelectors();
+            
+            // 根据选择的列更新图片列表
+            updateImagesFromColumns();
+            
             updateStats();
             loadUrlList();
-            showToast(`成功加载 ${data.total} 条链接`, 'success');
+            showToast(`成功加载 ${data.total} 条数据`, 'success');
         } else {
             showToast(data.error || '上传失败', 'error');
         }
@@ -171,6 +180,10 @@ async function downloadSelected() {
     
     const imagesToDownload = Array.from(selectedImages).map(index => currentImages[index]);
     
+    // 获取选中的命名列
+    const nameColumnSelect = document.getElementById('nameColumnSelect');
+    const nameColumn = nameColumnSelect ? nameColumnSelect.value : '';
+    
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadLoading = document.getElementById('downloadLoading');
     
@@ -187,7 +200,10 @@ async function downloadSelected() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ images: imagesToDownload })
+            body: JSON.stringify({ 
+                images: imagesToDownload,
+                name_column: nameColumn  // 传递命名列
+            })
         });
         
         const data = await response.json();
@@ -264,15 +280,108 @@ async function downloadSelected() {
     }
 }
 
+// 更新列选择器
+function updateColumnSelectors() {
+    const urlSelector = document.getElementById('urlColumnSelect');
+    const nameSelector = document.getElementById('nameColumnSelect');
+    const container = document.getElementById('columnSelectors');
+    
+    if (!urlSelector || !nameSelector || csvColumns.length === 0) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    // 清空选择器
+    urlSelector.innerHTML = '';
+    nameSelector.innerHTML = '';
+    
+    // 添加所有列作为选项
+    csvColumns.forEach(col => {
+        // URL列选择器
+        const urlOption = document.createElement('option');
+        urlOption.value = col;
+        urlOption.textContent = col;
+        // 默认选择包含url、link、image关键词的列
+        const colLower = col.toLowerCase();
+        if (colLower.includes('url') || colLower.includes('link') || colLower.includes('image')) {
+            urlOption.selected = true;
+        }
+        urlSelector.appendChild(urlOption);
+        
+        // 命名列选择器
+        const nameOption = document.createElement('option');
+        nameOption.value = col;
+        nameOption.textContent = col;
+        // 默认选择 album_id（如果存在）
+        if (col === 'album_id' || col.toLowerCase() === 'album_id') {
+            nameOption.selected = true;
+        }
+        nameSelector.appendChild(nameOption);
+    });
+    
+    // 如果没有自动选中URL列，选择第一列
+    if (!urlSelector.value && csvColumns.length > 0) {
+        urlSelector.value = csvColumns[0];
+    }
+    
+    // 如果没有 album_id，选择第一列作为命名列
+    if (!nameSelector.value && csvColumns.length > 0) {
+        nameSelector.value = csvColumns[0];
+    }
+    
+    // 添加事件监听器，当列选择改变时更新图片列表
+    urlSelector.addEventListener('change', updateImagesFromColumns);
+    nameSelector.addEventListener('change', updateImagesFromColumns);
+}
+
+// 根据选择的列更新图片列表
+function updateImagesFromColumns() {
+    const urlColumn = document.getElementById('urlColumnSelect')?.value;
+    const nameColumn = document.getElementById('nameColumnSelect')?.value;
+    
+    if (!urlColumn || !nameColumn || csvData.length === 0) {
+        return;
+    }
+    
+    currentImages = [];
+    
+    csvData.forEach((row, index) => {
+        const url = row[urlColumn] ? String(row[urlColumn]).trim() : '';
+        if (!url || url === 'nan' || url === '') {
+            return;
+        }
+        
+        const name = row[nameColumn] ? String(row[nameColumn]).trim() : String(index);
+        const albumId = name || String(index);
+        
+        const imageData = {
+            'id': index,
+            'album_id': albumId,
+            'url': url,
+            'csv_data': row  // 保存完整的CSV行数据
+        };
+        currentImages.push(imageData);
+    });
+    
+    selectedImages.clear();
+    updateStats();
+    loadUrlList();
+}
+
 // 清除文件
 function clearFile() {
     document.getElementById('csvFile').value = '';
     document.getElementById('fileInfo').style.display = 'none';
     document.getElementById('controlPanel').style.display = 'none';
     document.getElementById('urlListSection').style.display = 'none';
+    document.getElementById('columnSelectors').style.display = 'none';
     document.getElementById('urlListBody').innerHTML = '';
     currentImages = [];
     selectedImages.clear();
+    csvColumns = [];
+    csvData = [];
 }
 
 // 显示 Toast

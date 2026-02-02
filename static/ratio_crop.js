@@ -2,7 +2,7 @@
 const API_BASE = '/api';
 
 // 全局变量
-let allImages = [];  // 所有图片数据
+let allImages = [];  // 所有图片数据（CSV或本地文件）
 let selectedImages = new Set();  // 选中的图片ID
 let currentCropIndex = 0;  // 当前裁切的图片索引
 let cropQueue = [];  // 裁切队列
@@ -16,6 +16,10 @@ let cropBox = null;  // 裁切框元素
 let cropImage = null;  // 图片元素
 let allCroppedImages = [];  // 所有已裁切的图片列表
 let selectedCroppedImages = new Set();  // 选中的已裁切图片索引
+let uploadType = 'csv';  // 'local' 或 'csv'
+let uploadedLocalFiles = [];  // 本地上传的文件列表
+let csvColumns = [];  // CSV列名
+let csvData = [];  // 完整的CSV数据
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,33 +29,151 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAllCroppedImages();
 });
 
+// 切换上传类型
+window.switchUploadType = function(type) {
+    uploadType = type;
+    const localSection = document.getElementById('localUploadSection');
+    const csvSection = document.getElementById('csvUploadSection');
+    
+    if (type === 'local') {
+        localSection.style.display = 'block';
+        csvSection.style.display = 'none';
+        allImages = [];
+        selectedImages.clear();
+    } else {
+        localSection.style.display = 'none';
+        csvSection.style.display = 'block';
+        uploadedLocalFiles = [];
+        allImages = [];
+        selectedImages.clear();
+    }
+    
+    document.getElementById('gallerySection').style.display = 'none';
+};
+
 // 初始化上传功能
 function initUpload() {
+    // CSV上传
     const uploadArea = document.getElementById('uploadArea');
     const csvFile = document.getElementById('csvFile');
     
-    uploadArea.addEventListener('click', () => csvFile.click());
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-    });
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-    });
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file && file.name.endsWith('.csv')) {
-            handleCSVUpload(file);
-        }
+    if (uploadArea && csvFile) {
+        uploadArea.addEventListener('click', () => csvFile.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleCSVUpload(file);
+            }
+        });
+        
+        csvFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleCSVUpload(file);
+            }
+        });
+    }
+    
+    // 本地上传
+    const localUploadArea = document.getElementById('localUploadArea');
+    const localFileInput = document.getElementById('localFileInput');
+    
+    if (localUploadArea && localFileInput) {
+        localUploadArea.addEventListener('click', () => localFileInput.click());
+        localUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            localUploadArea.classList.add('dragover');
+        });
+        localUploadArea.addEventListener('dragleave', () => {
+            localUploadArea.classList.remove('dragover');
+        });
+        localUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            localUploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            if (files.length > 0) {
+                handleLocalUpload(files);
+            }
+        });
+        
+        localFileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                handleLocalUpload(files);
+            }
+        });
+    }
+}
+
+// 处理本地上传
+async function handleLocalUpload(files) {
+    const formData = new FormData();
+    files.forEach(file => {
+        formData.append('files', file);
     });
     
-    csvFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            handleCSVUpload(file);
+    showToast('上传图片文件中...', 'info');
+    
+    try {
+        const response = await fetch(`${API_BASE}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.files && data.files.length > 0) {
+            uploadedLocalFiles = data.files;
+            // 转换为allImages格式
+            allImages = data.files.map((file, index) => ({
+                id: index,
+                url: null,  // 本地文件没有URL
+                file_path: file.path,
+                saved_name: file.saved_name,
+                original_name: file.original_name,
+                album_id: null,  // 本地上传不使用album_id
+                is_local: true
+            }));
+            
+            selectedImages.clear();
+            updateLocalFileList();
+            document.getElementById('gallerySection').style.display = 'block';
+            loadGallery();
+            showToast(`成功上传 ${data.files.length} 张图片`, 'success');
+        } else {
+            showToast(data.error || '上传失败', 'error');
         }
+    } catch (error) {
+        showToast('上传失败: ' + error.message, 'error');
+    }
+}
+
+// 更新本地文件列表显示
+function updateLocalFileList() {
+    const localFileList = document.getElementById('localFileList');
+    if (!localFileList) return;
+    
+    if (uploadedLocalFiles.length === 0) {
+        localFileList.innerHTML = '<p style="color: #9E9E9E; font-weight: 300; font-size: 0.9em;">暂无上传文件</p>';
+        return;
+    }
+    
+    localFileList.innerHTML = `<div style="margin-bottom: 10px; color: #666; font-weight: bold;">已上传 ${uploadedLocalFiles.length} 张图片：</div>`;
+    
+    uploadedLocalFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `<span>${index + 1}. ${file.original_name}</span>`;
+        localFileList.appendChild(item);
     });
 }
 
@@ -71,7 +193,8 @@ async function handleCSVUpload(file) {
         const data = await response.json();
         
         if (data.success) {
-            allImages = data.images;
+            csvColumns = data.columns || [];
+            csvData = data.csv_data || [];
             selectedImages.clear();
             
             document.getElementById('fileName').textContent = file.name;
@@ -79,14 +202,114 @@ async function handleCSVUpload(file) {
             document.getElementById('fileInfo').style.display = 'block';
             document.getElementById('gallerySection').style.display = 'block';
             
-            loadGallery();
-            showToast(`成功加载 ${data.total} 张图片`, 'success');
+            // 更新列选择器
+            updateCsvColumnSelectors();
+            
+            showToast(`成功加载 ${data.total} 条数据！请选择URL列和命名列`, 'success');
         } else {
             showToast(data.error || '上传失败', 'error');
         }
     } catch (error) {
         showToast('上传失败: ' + error.message, 'error');
     }
+}
+
+// 更新CSV列选择器
+function updateCsvColumnSelectors() {
+    const urlSelector = document.getElementById('csvUrlColumnSelect');
+    const nameSelector = document.getElementById('csvNameColumnSelect');
+    const container = document.getElementById('csvColumnSelectors');
+    
+    if (!urlSelector || !nameSelector || csvColumns.length === 0) {
+        if (container) container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    // 清空选择器
+    urlSelector.innerHTML = '';
+    nameSelector.innerHTML = '';
+    
+    // 添加所有列作为选项
+    csvColumns.forEach(col => {
+        // URL列选择器
+        const urlOption = document.createElement('option');
+        urlOption.value = col;
+        urlOption.textContent = col;
+        // 默认选择包含url、link、image关键词的列
+        const colLower = col.toLowerCase();
+        if (colLower.includes('url') || colLower.includes('link') || colLower.includes('image')) {
+            urlOption.selected = true;
+        }
+        urlSelector.appendChild(urlOption);
+        
+        // 命名列选择器
+        const nameOption = document.createElement('option');
+        nameOption.value = col;
+        nameOption.textContent = col;
+        // 默认选择 album_id（如果存在）
+        if (col === 'album_id' || col.toLowerCase() === 'album_id') {
+            nameOption.selected = true;
+        }
+        nameSelector.appendChild(nameOption);
+    });
+    
+    // 如果没有自动选中URL列，选择第一列
+    if (!urlSelector.value && csvColumns.length > 0) {
+        urlSelector.value = csvColumns[0];
+    }
+    
+    // 如果没有 album_id，选择第一列作为命名列
+    if (!nameSelector.value && csvColumns.length > 0) {
+        nameSelector.value = csvColumns[0];
+    }
+    
+    // 添加事件监听器，当列选择改变时更新图片列表
+    urlSelector.addEventListener('change', updateImagesFromColumns);
+    nameSelector.addEventListener('change', updateImagesFromColumns);
+    
+    // 初始化图片列表
+    updateImagesFromColumns();
+}
+
+// 根据选择的列更新CSV图片列表
+function updateImagesFromColumns() {
+    const urlColumn = document.getElementById('csvUrlColumnSelect')?.value;
+    const nameColumn = document.getElementById('csvNameColumnSelect')?.value;
+    
+    if (!urlColumn || !nameColumn || csvData.length === 0) {
+        allImages = [];
+        selectedImages.clear();
+        document.getElementById('imageCount').textContent = '0';
+        loadGallery();
+        return;
+    }
+    
+    allImages = [];
+    selectedImages.clear();
+    
+    csvData.forEach((row, index) => {
+        const url = row[urlColumn] ? String(row[urlColumn]).trim() : '';
+        if (!url || url === 'nan' || url === '' || !url.startsWith('http')) {
+            return;
+        }
+        
+        const name = row[nameColumn] ? String(row[nameColumn]).trim() : String(index);
+        const albumId = name || String(index);
+        
+        const imageData = {
+            'id': index,
+            'url': url,
+            'album_id': albumId,
+            'original_name': `${albumId}.jpg`,
+            'csv_data': row  // 保存完整的CSV行数据
+        };
+        allImages.push(imageData);
+    });
+    
+    document.getElementById('imageCount').textContent = allImages.length;
+    loadGallery();
 }
 
 // 加载图片画廊
@@ -183,29 +406,49 @@ async function loadNextImage() {
     // 加载图片
     try {
         showToast('加载图片中...', 'info');
-        const response = await fetch(`${API_BASE}/load-image-ratio`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ url: image.url })
-        });
         
-        const data = await response.json();
-        
-        if (data.success) {
-            cropImage.src = data.data_url;
-            currentImageData.width = data.width;
-            currentImageData.height = data.height;
-            currentImageData.format = data.format;
+        if (image.is_local) {
+            // 本地上传：从服务器加载预览
+            cropImage.src = `/api/preview-upload/${image.saved_name}`;
             
-            // 等待图片加载完成后初始化裁切框
+            // 等待图片加载完成后获取尺寸
             cropImage.onload = () => {
+                currentImageData.width = cropImage.naturalWidth;
+                currentImageData.height = cropImage.naturalHeight;
+                currentImageData.format = 'JPEG';
                 initCropBox();
             };
+            
+            cropImage.onerror = () => {
+                showToast('加载图片失败', 'error');
+                skipCurrent();
+            };
         } else {
-            showToast('加载图片失败: ' + data.error, 'error');
-            skipCurrent();
+            // CSV上传：从URL加载
+            const response = await fetch(`${API_BASE}/load-image-ratio`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: image.url })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                cropImage.src = data.data_url;
+                currentImageData.width = data.width;
+                currentImageData.height = data.height;
+                currentImageData.format = data.format;
+                
+                // 等待图片加载完成后初始化裁切框
+                cropImage.onload = () => {
+                    initCropBox();
+                };
+            } else {
+                showToast('加载图片失败: ' + data.error, 'error');
+                skipCurrent();
+            }
         }
     } catch (error) {
         showToast('加载图片失败: ' + error.message, 'error');
@@ -343,20 +586,39 @@ async function confirmCrop() {
     showToast('裁切中...', 'info');
     
     try {
+        const requestBody = {
+            offsetX: actualOffsetX,
+            originalWidth: imageWidth,
+            originalHeight: imageHeight,
+            imageId: currentImageData.id,
+            originalName: currentImageData.original_name,
+            is_local_upload: currentImageData.is_local || false
+        };
+        
+        if (currentImageData.is_local) {
+            // 本地上传：传递文件路径
+            requestBody.file_path = currentImageData.file_path;
+            requestBody.saved_name = currentImageData.saved_name;
+        } else {
+            // CSV上传：传递URL和album_id
+            requestBody.url = currentImageData.url;
+            requestBody.albumId = currentImageData.album_id || currentImageData.id;
+            // 传递命名列和CSV数据
+            const nameColumn = document.getElementById('csvNameColumnSelect')?.value;
+            if (nameColumn) {
+                requestBody.name_column = nameColumn;
+            }
+            if (currentImageData.csv_data) {
+                requestBody.csv_data = currentImageData.csv_data;
+            }
+        }
+        
         const response = await fetch(`${API_BASE}/crop-ratio`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                url: currentImageData.url,
-                offsetX: actualOffsetX,
-                originalWidth: imageWidth,
-                originalHeight: imageHeight,
-                imageId: currentImageData.id,
-                albumId: currentImageData.album_id || currentImageData.id,  // 传递专辑ID
-                originalName: currentImageData.original_name
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();
@@ -365,8 +627,8 @@ async function confirmCrop() {
             // 保存裁切结果
             croppedImages.push({
                 imageId: currentImageData.id,
-                albumId: data.album_id || currentImageData.album_id || currentImageData.id,  // 保存专辑ID
-                originalName: data.original_name || currentImageData.original_name,  // 使用后端返回的original_name（包含专辑ID）
+                albumId: currentImageData.album_id || currentImageData.id,
+                originalName: data.original_name || currentImageData.original_name,
                 processedName: data.processed_name,
                 width: data.width,
                 height: data.height
